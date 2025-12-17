@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 // Removed Firebase Auth imports as we are using LocalStorage for the GitHub version
 import { Tab } from "./types";
-import BottomNav from './components/BottomNav.tsx';
+import { BottomNav} from './components/BottomNav.tsx';
 import { Schedule } from "./views/Schedule";
 import { Bookings } from "./views/Bookings";
 import { Expense } from "./views/Expense";
