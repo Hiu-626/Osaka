@@ -1,22 +1,19 @@
 import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, process.cwd(), '');
-    return {
-      // ⚠️ 下面呢行最重要！唔改會白畫面！
-      base: '/Osaka/', 
-      
-      plugins: [react()],
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, './src'), // 通常指去 src folder
-        }
-      },
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      }
-    };
+export default defineConfig({
+  // ⚠️ 確保你的 GitHub Repository 名稱真的是 "Osaka"
+  // 如果你的網址是 https://hiu-626.github.io/Osaka/，這樣寫是對的
+  base: '/Osaka/', 
+  
+  plugins: [react()],
+  
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'), 
+    }
+  },
+  
+  // 這裡移除了 define，因為建議用下面教你的 VITE_ 方式
 });
