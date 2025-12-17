@@ -1,12 +1,13 @@
 import React from 'react';
 import { Tab } from '../types';
 
-interface BottomNavProps {
+interface MyNavBarProps {
   currentTab: Tab;
   onTabChange: (tab: Tab) => void;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange }) => {
+// ⚠️ 改咗名做 MyNavBar，同檔案名一致
+const MyNavBar: React.FC<MyNavBarProps> = ({ currentTab, onTabChange }) => {
   const tabs = [
     { id: Tab.Schedule, icon: 'fa-calendar-days', label: 'Schedule' },
     { id: Tab.Bookings, icon: 'fa-ticket', label: 'Bookings' },
@@ -50,3 +51,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange })
     </div>
   );
 };
+
+// ⚠️ 這一行最重要！App.tsx 靠呢行黎 Import
+export default MyNavBar;
