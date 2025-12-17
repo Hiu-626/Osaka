@@ -1,0 +1,7 @@
+{
+  "name": "DuckTravel - Group Trip Planner",
+  "description": "A Donald Duck themed, Japanese notebook style travel planner with schedule, booking, expense, and journal features.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
