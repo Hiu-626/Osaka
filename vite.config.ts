@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
     return {
       // ⚠️ 下面呢行最重要！唔改會白畫面！
-      base: '/你的-repo-名/', 
+      base: '/Osaka/', 
       
       plugins: [react()],
       resolve: {
