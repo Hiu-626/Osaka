@@ -3,46 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>DuckTravel Planner</title>
+    <title>DuckTravel Planner (Debug Mode)</title>
     
     <!-- 1. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-    <!-- 2. Tailwind 設定 -->
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              duck: {
-                yellow: '#FFD700',
-                blue: '#1E90FF',
-                red: '#FF4500',
-                white: '#F7F9FC',
-                dark: '#1e3a8a',
-              }
-            },
-            fontFamily: {
-              sans: ['ui-rounded', 'Nunito', 'Segoe UI', 'sans-serif'],
-            }
-          }
-        }
-      }
-    </script>
-
-    <style>
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      body {
-        background-color: #E0F2FE;
-        background-image: radial-gradient(#60A5FA 1px, transparent 1px);
-        background-size: 20px 20px;
-      }
-    </style>
-
-    <!-- 3. Import Map (話俾瀏覽器知 React 同 Firebase 喺邊度拎) -->
-    <!-- 我改用了 esm.sh CDN，因為它對瀏覽器直接運行 React 比較穩定 -->
+    <!-- 2. Import Map (指定 React 同 Firebase 來源) -->
     <script type="importmap">
     {
       "imports": {
@@ -54,24 +21,38 @@
     }
     </script>
     
-    <!-- 4. Babel (讓瀏覽器睇得明 React JSX 寫法) -->
+    <!-- 3. Babel (編譯器) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      body { background-color: #E0F2FE; }
+      #error-box { display: none; padding: 20px; background: #fee2e2; color: #991b1b; border: 2px solid #ef4444; margin: 20px; border-radius: 8px; font-family: monospace; }
+    </style>
   </head>
   
   <body>
-    <!-- React 會將內容畫喺度 -->
+    <!-- 如果有錯，會顯示喺度 -->
+    <div id="error-box"></div>
     <div id="root"></div>
 
-    <!-- 5. 主程式邏輯 (type="text/babel" 重要！) -->
+    <!-- 錯誤捕捉劇本 -->
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        const errorBox = document.getElementById('error-box');
+        errorBox.style.display = 'block';
+        errorBox.innerHTML = `<strong>⚠️ 程式出錯 (Error):</strong><br>${message}<br><br><small>位置: Line ${lineno}</small>`;
+      };
+    </script>
+
+    <!-- 4. 主程式 -->
     <script type="text/babel" data-type="module">
-      import React, { useState } from 'react';
+      import React, { useState, useEffect } from 'react';
       import { createRoot } from 'react-dom/client';
       import { initializeApp } from 'firebase/app';
-      import { getFirestore, collection, addDoc } from 'firebase/firestore';
+      import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 
       // ==========================================
-      // 【請在這裡貼上你的 Firebase Config】
-      // 去 Firebase Console -> Project Settings -> General -> 下面 Copy
+      // 【⚠️ 請確保這裡已填上你的資料 ⚠️】
       // ==========================================
       const firebaseConfig = {
   apiKey: "AIzaSyC2FhBEJC_VilXXm2i2l9rVjXthFUUQuao",
@@ -80,118 +61,110 @@
   storageBucket: "travel-planner-d59ab.firebasestorage.app",
   messagingSenderId: "845991687518",
   appId: "1:845991687518:web:8d356490f811f27fa6cbcf"
-};
       };
 
-      // 初始化 Firebase
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
+      // 檢查 Config 是否正確
+      if (firebaseConfig.apiKey === "你的_API_KEY") {
+        throw new Error("你忘記填寫 Firebase Config！請回到代碼中填入你的 API Key。");
+      }
 
-      // --- React 组件 (畫面與邏輯) ---
+      // 初始化 Firebase
+      let app, db;
+      try {
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+      } catch (e) {
+        throw new Error("Firebase 連接失敗，請檢查 Config 是否正確: " + e.message);
+      }
+
       function App() {
         const [days, setDays] = useState("");
         const [budget, setBudget] = useState("");
         const [status, setStatus] = useState("");
         const [loading, setLoading] = useState(false);
+        const [history, setHistory] = useState([]);
 
-        // 這是主要的「計算 + 儲存」功能
-        const handleCalculateAndSave = async () => {
-          if (!days || !budget) {
-            alert("請輸入天數和預算！");
-            return;
+        useEffect(() => {
+          try {
+            const q = query(collection(db, "trips"), orderBy("createdAt", "desc"));
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+              const tripsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              setHistory(tripsData);
+            }, (error) => {
+              console.error("讀取失敗:", error);
+              setStatus("讀取失敗：權限不足或網絡問題");
+            });
+            return () => unsubscribe();
+          } catch (err) {
+            console.error(err);
           }
+        }, []);
 
+        const handleCalculateAndSave = async () => {
+          if (!days || !budget) return;
           setLoading(true);
-          setStatus("計算中...");
-
-          // 1. 計算邏輯 (示範：每日平均預算)
           const totalBudget = parseFloat(budget);
           const numDays = parseInt(days);
           const dailyAverage = (totalBudget / numDays).toFixed(0);
 
           try {
-            // 2. 儲存到 Firebase Firestore
-            // 會儲存到叫 'trips' 的集合中
-            const docRef = await addDoc(collection(db, "trips"), {
+            await addDoc(collection(db, "trips"), {
               days: numDays,
               totalBudget: totalBudget,
               dailyAverage: parseFloat(dailyAverage),
               createdAt: new Date()
             });
-
-            setStatus(`成功！每日平均可用 $${dailyAverage}。資料已儲存 (ID: ${docRef.id})`);
-            
-            // 清空輸入
-            setDays("");
-            setBudget("");
-
+            setStatus("已儲存！");
+            setDays(""); setBudget("");
           } catch (error) {
-            console.error("Error:", error);
-            setStatus("儲存失敗，請檢查 Console 或 Firebase 權限。");
+            console.error(error);
+            setStatus("儲存失敗: " + error.message);
           } finally {
             setLoading(false);
+            setTimeout(() => setStatus(""), 2000);
+          }
+        };
+
+        const handleDelete = async (id) => {
+          if(confirm("確定刪除？")) {
+            await deleteDoc(doc(db, "trips", id));
           }
         };
 
         return (
-          <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-duck-blue/20">
-              
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-duck-dark mb-2">
-                  <i className="fa-solid fa-plane-departure text-duck-blue mr-2"></i>
-                  DuckTravel Planner
-                </h1>
-                <p className="text-gray-500">輸入資料，自動計算並儲存</p>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">旅行天數</label>
-                  <input 
-                    type="number" 
-                    value={days}
-                    onChange={(e) => setDays(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-duck-yellow focus:border-transparent outline-none transition"
-                    placeholder="例如：5"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">總預算 ($)</label>
-                  <input 
-                    type="number" 
-                    value={budget}
-                    onChange={(e) => setBudget(e.target.value)}
-                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-duck-yellow focus:border-transparent outline-none transition"
-                    placeholder="例如：10000"
-                  />
-                </div>
-
-                <button 
-                  onClick={handleCalculateAndSave}
-                  disabled={loading}
-                  className="w-full bg-duck-blue hover:bg-duck-dark text-white font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-[1.02] active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <span><i className="fa-solid fa-spinner fa-spin mr-2"></i>處理中...</span>
-                  ) : (
-                    <span><i className="fa-solid fa-calculator mr-2"></i>計算並儲存</span>
-                  )}
+          <div className="min-h-screen flex flex-col items-center p-4">
+            <div className="bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl w-full max-w-md border border-blue-200 mb-6">
+              <h1 className="text-2xl font-bold text-blue-900 mb-4 text-center">
+                DuckTravel Planner
+              </h1>
+              <div className="space-y-3">
+                <input type="number" value={days} onChange={(e) => setDays(e.target.value)} className="w-full p-3 rounded-lg border border-gray-300" placeholder="幾多日？" />
+                <input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} className="w-full p-3 rounded-lg border border-gray-300" placeholder="總預算 ($)" />
+                <button onClick={handleCalculateAndSave} disabled={loading} className="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition">
+                  {loading ? "處理中..." : "計算並儲存"}
                 </button>
+                {status && <p className="text-center text-sm mt-2">{status}</p>}
+              </div>
+            </div>
 
-                {status && (
-                  <div className={`mt-4 p-3 rounded-lg text-sm text-center ${status.includes("成功") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                    {status}
+            <div className="w-full max-w-md">
+              <h2 className="text-xl font-bold text-blue-900 mb-3 px-2">紀錄 ({history.length})</h2>
+              <div className="space-y-3">
+                {history.map((item) => (
+                  <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-yellow-400 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-gray-800">${item.totalBudget} / {item.days}日</p>
+                      <p className="text-sm text-gray-500">平均: <span className="text-blue-600 font-bold">${item.dailyAverage}</span></p>
+                    </div>
+                    <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-500"><i className="fa-solid fa-trash"></i></button>
                   </div>
-                )}
+                ))}
               </div>
             </div>
           </div>
         );
       }
 
-      // 將 App 渲染到 HTML 的 #root 位置
       const root = createRoot(document.getElementById('root'));
       root.render(<App />);
     </script>
