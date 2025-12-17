@@ -1,31 +1,34 @@
-// App.tsx
-import React from "react";
-import { db } from "./services/firebase";
-import { collection, addDoc } from "firebase/firestore";
+import React, { useState } from "react";
+import { Tab } from "./types";
+import { BottomNav } from "./components/BottomNav";
+import { Schedule } from "./views/Schedule";
+import { Bookings } from "./views/Bookings";
+import { Expense } from "./views/Expense";
+import { Journal } from "./views/Journal";
+import { Planning } from "./views/Planning";
+import { Members } from "./views/Members";
 
 function App() {
+  const [currentTab, setCurrentTab] = useState<Tab>(Tab.Schedule);
 
-  const testWrite = async () => {
-    try {
-      const docRef = await addDoc(collection(db, "trips"), {
-        city: "Osaka",
-        days: 5,
-        budget: 1200,
-        createdAt: new Date()
-      });
-      alert("Document written with ID: " + docRef.id);
-    } catch (e) {
-      console.error("Error adding document: ", e);
-      alert("Error: " + e);
+  const renderView = () => {
+    switch (currentTab) {
+      case Tab.Schedule: return <Schedule />;
+      case Tab.Bookings: return <Bookings />;
+      case Tab.Expense: return <Expense />;
+      case Tab.Journal: return <Journal />;
+      case Tab.Planning: return <Planning />;
+      case Tab.Members: return <Members />;
+      default: return <Schedule />;
     }
   };
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Travel Planner Test</h1>
-      <button onClick={testWrite} style={{ padding: "1rem", fontSize: "16px" }}>
-        Add Test Trip
-      </button>
+    <div className="h-[100dvh] w-full bg-[#E0F2FE] relative overflow-hidden flex flex-col font-sans text-gray-800 bg-[radial-gradient(#60A5FA_1px,transparent_1px)] [background-size:20px_20px]">
+      <div className="flex-1 overflow-hidden relative">
+        {renderView()}
+      </div>
+      <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />
     </div>
   );
 }
