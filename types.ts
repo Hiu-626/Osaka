@@ -63,7 +63,7 @@ export interface TodoItem {
 }
 
 export interface Member {
-  id: number;
+  id: string;
   name: string;
   role: string;
   img: number;

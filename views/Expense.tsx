@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Card } from '../components/Card';
 import { ExpenseItem, CategoryType } from '../types';
+import { useFirestore } from '../hooks/useFirestore';
 
 export const Expense: React.FC = () => {
+  const { data: expenses, add, update } = useFirestore<ExpenseItem>('expenses');
+
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState<'JPY' | 'HKD' | 'AUD'>('JPY');
   const [category, setCategory] = useState<CategoryType>('food');
@@ -10,7 +13,7 @@ export const Expense: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showSettlement, setShowSettlement] = useState(false);
 
-  // Mock Members
+  // Hardcoded members for now (could also come from DB)
   const members = ['Me', 'Daisy', 'Scrooge', 'Huey'];
 
   // Mock Exchange Rates to JPY
@@ -20,34 +23,25 @@ export const Expense: React.FC = () => {
     AUD: 95  // 1 AUD = 95 JPY approx
   };
 
-  const [expenses, setExpenses] = useState<ExpenseItem[]>([
-    { id: '1', amount: 3000, currency: 'JPY', category: 'food', payer: 'Me', date: '02/04' },
-    { id: '2', amount: 500, currency: 'HKD', category: 'transport', payer: 'Daisy', date: '02/05' },
-    { id: '3', amount: 200, currency: 'AUD', category: 'stay', payer: 'Scrooge', date: '02/06' },
-  ]);
-
-  const addOrUpdateExpense = () => {
+  const addOrUpdateExpense = async () => {
     if (!amount) return;
     
     if (editingId) {
-        setExpenses(expenses.map(e => e.id === editingId ? {
-            ...e,
+        await update(editingId, {
             amount: parseFloat(amount),
             currency,
             category,
             payer
-        } : e));
+        });
         setEditingId(null);
     } else {
-        const newExp: ExpenseItem = {
-            id: Date.now().toString(),
+        await add({
             amount: parseFloat(amount),
             currency: currency,
             category: category,
             payer: payer,
-            date: '02/04' // Mock current date
-        };
-        setExpenses([newExp, ...expenses]);
+            date: new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })
+        });
     }
     setAmount('');
   };

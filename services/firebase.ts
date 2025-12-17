@@ -1,6 +1,6 @@
-import firebase from "firebase/app";
-import "firebase/firestore";
-import "firebase/auth";
+import firebase from "firebase/compat/app";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC2FhBEJC_VilXXm2i2l9rVjXthFUUQuao",
@@ -11,6 +11,9 @@ const firebaseConfig = {
   appId: "1:845991687518:web:8d356490f811f27fa6cbcf"
 };
 
+// Initialize Firebase only once
 const app = firebase.apps.length > 0 ? firebase.app() : firebase.initializeApp(firebaseConfig);
-export const db = app.firestore();
-export const auth = app.auth();
+
+// Use explicit casting to any to ensure compatibility between compat app and modular services
+export const db = getFirestore(app as any);
+export const auth = getAuth(app as any);

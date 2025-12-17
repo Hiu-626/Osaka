@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import { Card } from '../components/Card';
 import { Member } from '../types';
+import { useFirestore } from '../hooks/useFirestore';
 
 export const Members: React.FC = () => {
-  const [members, setMembers] = useState<Member[]>([
-    { id: 1, name: 'Me', role: 'Organizer', img: 1 },
-    { id: 2, name: 'Daisy', role: 'Finance', img: 2 },
-    { id: 3, name: 'Scrooge', role: 'Sponsor', img: 3 },
-  ]);
+  const { data: members, add, update } = useFirestore<Member>('members');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
@@ -30,21 +27,17 @@ export const Members: React.FC = () => {
       setIsModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
       if(!name) return;
 
       if(editingMember) {
-          // Edit
-          setMembers(members.map(m => m.id === editingMember.id ? { ...m, name, role } : m));
+          await update(editingMember.id, { name, role });
       } else {
-          // Add
-          const newMember = {
-              id: Date.now(),
+          await add({
               name,
               role: role || 'Member',
               img: Math.floor(Math.random() * 70)
-          };
-          setMembers([...members, newMember]);
+          });
       }
       setIsModalOpen(false);
   };

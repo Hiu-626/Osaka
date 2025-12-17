@@ -1,48 +1,28 @@
 import React, { useState } from 'react';
 import { Card } from '../components/Card';
 import { JournalItem } from '../types';
+import { useFirestore } from '../hooks/useFirestore';
 
 export const Journal: React.FC = () => {
-  const [posts, setPosts] = useState<JournalItem[]>([
-    {
-        id: '1',
-        author: 'Donald D.',
-        avatarId: 1,
-        imageUrl: 'https://picsum.photos/600/400?random=11',
-        content: 'Found this amazing spot near the station! The coffee was surprisingly good.',
-        location: 'Tokyo, Japan',
-        date: '2 hours ago'
-    },
-    {
-        id: '2',
-        author: 'Daisy',
-        avatarId: 2,
-        imageUrl: 'https://picsum.photos/600/400?random=12',
-        content: 'Shopping day in Ginza! Look at these cute items.',
-        location: 'Ginza',
-        date: '5 hours ago'
-    }
-  ]);
+  const { data: posts, add } = useFirestore<JournalItem>('journal');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newContent, setNewContent] = useState('');
   const [newLocation, setNewLocation] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
 
-  const handlePost = () => {
+  const handlePost = async () => {
       if (!newContent) return;
       
-      const newPost: JournalItem = {
-          id: Date.now().toString(),
+      await add({
           author: 'Me',
           avatarId: 3,
           imageUrl: newImageUrl || `https://picsum.photos/600/400?random=${Date.now()}`,
           content: newContent,
           location: newLocation || 'Japan',
-          date: 'Just now'
-      };
+          date: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+      });
 
-      setPosts([newPost, ...posts]);
       setNewContent('');
       setNewLocation('');
       setNewImageUrl('');
@@ -60,6 +40,12 @@ export const Journal: React.FC = () => {
           <i className="fa-solid fa-camera"></i>
         </button>
       </div>
+
+      {posts.length === 0 && (
+          <div className="text-center text-gray-400 font-bold py-10">
+              No memories yet. Add one!
+          </div>
+      )}
 
       {posts.map((post) => (
         <Card key={post.id} className="mb-6 p-3">

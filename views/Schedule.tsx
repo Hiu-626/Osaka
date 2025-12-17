@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
 import { ScheduleItem, CategoryType } from '../types';
+import { useFirestore } from '../hooks/useFirestore';
 
 export const Schedule: React.FC = () => {
+  // Real database connection
+  const { data: items, add, update } = useFirestore<ScheduleItem>('schedule');
+  
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [countdownDays, setCountdownDays] = useState(0);
   
@@ -10,7 +14,6 @@ export const Schedule: React.FC = () => {
   const TRIP_START_DATE = new Date('2026-02-04T00:00:00');
 
   useEffect(() => {
-    // Fix: Normalize "now" to midnight to compare dates accurately
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     const target = new Date(TRIP_START_DATE);
@@ -20,16 +23,6 @@ export const Schedule: React.FC = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     setCountdownDays(diffDays > 0 ? diffDays : 0);
   }, []);
-
-  const [items, setItems] = useState<ScheduleItem[]>([
-    { id: '1', dayIndex: 0, time: '09:00', title: 'Depart from Narita', type: 'transport', location: 'Terminal 2', notes: 'Take the Limousine Bus', mapLink: 'https://maps.google.com' },
-    { id: '2', dayIndex: 0, time: '11:30', title: 'Hotel Check-in', type: 'stay', location: 'Disney Resort Hotel', notes: 'Confirmation #12345' },
-    { id: '3', dayIndex: 0, time: '12:30', title: 'Lunch at Ikspiari', type: 'food', location: 'Rainforest Cafe', notes: 'Reserved table for 4' },
-    { id: '4', dayIndex: 0, time: '14:00', title: 'Disneyland Entry', type: 'sightseeing', location: 'Maihama', photoUrl: 'https://picsum.photos/400/200?random=1' },
-    { id: '5', dayIndex: 0, time: '19:00', title: 'Electric Parade', type: 'sightseeing', location: 'Parade Route' },
-    { id: '6', dayIndex: 1, time: '08:00', title: 'DisneySea Ropeway', type: 'transport', location: 'Bayside Station' },
-    { id: '7', dayIndex: 1, time: '18:00', title: 'Dinner Show', type: 'food', location: 'Polynesian Terrace' },
-  ]);
 
   // Editing State
   const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null);
@@ -71,12 +64,15 @@ export const Schedule: React.FC = () => {
     return 'fa-cloud text-gray-400';
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editingItem) {
       if (isNewItem) {
-        setItems([...items, editingItem]);
+        // Remove temporary ID before sending to Firestore
+        const { id, ...newItemData } = editingItem;
+        await add(newItemData);
       } else {
-        setItems(items.map(i => i.id === editingItem.id ? editingItem : i));
+        const { id, ...updateData } = editingItem;
+        await update(id, updateData);
       }
       setEditingItem(null);
       setIsEditMode(false);
@@ -92,8 +88,8 @@ export const Schedule: React.FC = () => {
 
   const handleAddNew = () => {
     const newItem: ScheduleItem = {
-      id: Date.now().toString(),
-      dayIndex: selectedDayIndex, // Ensure it's added to current day
+      id: 'temp_id',
+      dayIndex: selectedDayIndex,
       time: '12:00',
       title: 'New Event',
       type: 'sightseeing',
@@ -106,7 +102,9 @@ export const Schedule: React.FC = () => {
   };
 
   // Filter items for current day
-  const displayedItems = items.filter(i => i.dayIndex === selectedDayIndex).sort((a,b) => a.time.localeCompare(b.time));
+  const displayedItems = items
+    .filter(i => i.dayIndex === selectedDayIndex)
+    .sort((a,b) => a.time.localeCompare(b.time));
 
   return (
     <div className="pb-20 pt-4 px-4 max-w-md mx-auto h-full overflow-y-auto no-scrollbar">
@@ -141,7 +139,7 @@ export const Schedule: React.FC = () => {
         ))}
       </div>
 
-      {/* Enhanced Weather Box (Complete) */}
+      {/* Weather Box */}
       <div className="bg-gradient-to-r from-blue-50 to-white rounded-2xl p-5 shadow-sm border border-blue-100 mb-6 relative overflow-hidden">
          <div className="absolute top-0 right-0 p-4 opacity-10 text-6xl text-blue-500">
            <i className={`fa-solid ${getWeatherIcon(currentDayInfo.w).split(' ')[0]}`}></i>
@@ -206,7 +204,6 @@ export const Schedule: React.FC = () => {
         ))}
       </div>
 
-      {/* Add Button */}
       <button 
         onClick={handleAddNew}
         className="fixed bottom-24 right-6 w-14 h-14 bg-duck-dark text-white rounded-full shadow-2xl flex items-center justify-center border-4 border-white active:scale-95 transition-transform z-40 hover:bg-blue-800"

@@ -1,56 +1,38 @@
 import React, { useState } from 'react';
 import { Card } from '../components/Card';
 import { BookingItem } from '../types';
+import { useFirestore } from '../hooks/useFirestore';
 
 export const Bookings: React.FC = () => {
+  const { data: bookings, add, update } = useFirestore<BookingItem>('bookings');
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [bookings, setBookings] = useState<BookingItem[]>([
-    { 
-      id: 'b1', 
-      type: 'flight', 
-      title: 'JL 123', 
-      date: 'Feb 4, 09:00', 
-      details: 'Seat 14A, Gate 52',
-      originCode: 'TPE',
-      destCode: 'NRT',
-      originCity: 'Taipei',
-      destCity: 'Tokyo',
-      seat: '14A'
-    },
-    { 
-      id: 'b2', 
-      type: 'hotel', 
-      title: 'Disney Resort Hotel', 
-      date: 'Feb 4 - Feb 8', 
-      details: 'Ocean View Room',
-      checkIn: '15:00',
-      checkOut: '11:00',
-      address: '1-1 Maihama, Urayasu',
-      cost: 120000,
-      currency: 'JPY',
-      splitBy: 4
-    },
-    {
-      id: 'b3',
-      type: 'car',
-      title: 'Toyota Rent-a-Car',
-      date: 'Feb 6',
-      details: 'Alphard Class',
-      pickupLocation: 'Maihama Station',
-      dropoffLocation: 'Narita Airport'
-    }
-  ]);
-
   const updateBooking = (id: string, field: keyof BookingItem, value: any) => {
-    setBookings(bookings.map(b => b.id === id ? { ...b, [field]: value } : b));
+    update(id, { [field]: value });
+  };
+
+  const handleAddNew = async () => {
+      await add({
+        type: 'flight', 
+        title: 'New Flight', 
+        date: 'TBD', 
+        details: 'Edit details',
+        originCode: '???',
+        destCode: '???',
+        originCity: 'Origin',
+        destCity: 'Dest',
+        seat: '--'
+      });
   };
 
   return (
     <div className="pb-20 pt-4 px-4 max-w-md mx-auto h-full overflow-y-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-black text-duck-dark ml-2">My Bookings</h1>
-        <button className="bg-duck-yellow w-10 h-10 rounded-full flex items-center justify-center border-2 border-duck-dark shadow-md">
+        <button 
+            onClick={handleAddNew}
+            className="bg-duck-yellow w-10 h-10 rounded-full flex items-center justify-center border-2 border-duck-dark shadow-md"
+        >
             <i className="fa-solid fa-plus"></i>
         </button>
       </div>
@@ -144,7 +126,6 @@ export const Bookings: React.FC = () => {
                  </div>
                </div>
             ) : (
-              // Hotel, Car, Ticket (No more Lock Logic)
               <Card className="relative overflow-hidden">
                  <div className="flex justify-between items-start mb-4">
                    <div className="flex items-center w-full">
@@ -163,7 +144,6 @@ export const Bookings: React.FC = () => {
                  </div>
 
                  <div className="space-y-3 pt-2">
-                     {/* Hotel Specifics */}
                      {booking.type === 'hotel' && (
                          <>
                             <div className="flex gap-4 text-sm bg-gray-50 p-2 rounded-lg">
@@ -178,23 +158,9 @@ export const Bookings: React.FC = () => {
                                     <div className="font-medium text-gray-700">{booking.address}</div>
                                 )}
                             </div>
-                            {booking.cost && (
-                                <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-200">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-xs font-bold text-yellow-700">TOTAL COST</span>
-                                        <span className="font-black text-duck-dark">{booking.currency} {booking.cost.toLocaleString()}</span>
-                                    </div>
-                                    <div className="border-t border-yellow-200 my-1"></div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-yellow-600">Per Person ({booking.splitBy})</span>
-                                        <span className="font-bold text-gray-800">{booking.currency} {Math.round(booking.cost / (booking.splitBy || 1)).toLocaleString()}</span>
-                                    </div>
-                                </div>
-                            )}
                          </>
                      )}
 
-                     {/* Car Specifics */}
                      {booking.type === 'car' && (
                          <div className="space-y-2">
                             <div className="flex items-center gap-2 text-sm">
@@ -207,24 +173,6 @@ export const Bookings: React.FC = () => {
                             </div>
                          </div>
                      )}
-
-                     {/* Voucher Upload */}
-                     <div className="mt-4 pt-2 border-t border-gray-100">
-                         <h4 className="text-xs font-bold text-gray-400 mb-2">VOUCHERS / TICKETS</h4>
-                         <div className="flex gap-2">
-                            <div className="w-16 h-16 bg-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-300 cursor-pointer hover:border-duck-blue hover:text-duck-blue">
-                                <i className="fa-solid fa-cloud-arrow-up"></i>
-                                <span className="text-[8px] font-bold mt-1">UPLOAD</span>
-                            </div>
-                            {booking.id === 'b1' && (
-                                <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-200 relative">
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                                        <i className="fa-solid fa-file-pdf text-red-500 text-xl"></i>
-                                    </div>
-                                </div>
-                            )}
-                         </div>
-                     </div>
                    </div>
               </Card>
             )}

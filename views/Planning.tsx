@@ -1,38 +1,30 @@
 import React, { useState } from 'react';
 import { Card } from '../components/Card';
 import { TodoItem } from '../types';
+import { useFirestore } from '../hooks/useFirestore';
 
 export const Planning: React.FC = () => {
+  const { data: todos, add, update, remove } = useFirestore<TodoItem>('planning');
   const [activeTab, setActiveTab] = useState<'packing' | 'shopping'>('packing');
   const [newItemText, setNewItemText] = useState('');
   
-  const [todos, setTodos] = useState<TodoItem[]>([
-    { id: '1', text: 'Buy SIM Card', completed: true, type: 'packing' },
-    { id: '2', text: 'Pack Power Bank', completed: false, type: 'packing' },
-    { id: '3', text: 'Print Hotel Vouchers', completed: false, type: 'packing' },
-    { id: '4', text: 'Tokyo Banana', completed: false, type: 'shopping' },
-    { id: '5', text: 'Matcha KitKat', completed: false, type: 'shopping' },
-  ]);
-
-  const toggleTodo = (id: string) => {
-    setTodos(todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  const toggleTodo = async (id: string, currentStatus: boolean) => {
+    await update(id, { completed: !currentStatus });
   };
 
-  const addItem = () => {
+  const addItem = async () => {
       if(!newItemText.trim()) return;
-      const newItem: TodoItem = {
-          id: Date.now().toString(),
+      await add({
           text: newItemText,
           completed: false,
           type: activeTab
-      };
-      setTodos([...todos, newItem]);
+      });
       setNewItemText('');
   };
 
-  const deleteItem = (id: string, e: React.MouseEvent) => {
+  const deleteItem = async (id: string, e: React.MouseEvent) => {
       e.stopPropagation();
-      setTodos(todos.filter(t => t.id !== id));
+      await remove(id);
   };
 
   const filteredTodos = todos.filter(t => t.type === activeTab);
@@ -80,7 +72,7 @@ export const Planning: React.FC = () => {
            {filteredTodos.map((todo) => (
              <div 
                key={todo.id} 
-               onClick={() => toggleTodo(todo.id)}
+               onClick={() => toggleTodo(todo.id, todo.completed)}
                className="group flex items-center p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-100"
              >
                <div className={`
