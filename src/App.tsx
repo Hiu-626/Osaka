@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { signInAnonymously } from "firebase/auth";
-import { auth } from "./services/firebase";
+import React, { useState } from "react";
+// Removed Firebase Auth imports as we are using LocalStorage for the GitHub version
 import { Tab } from "./types";
 import { BottomNav } from "./components/BottomNav";
 import { Schedule } from "./views/Schedule";
@@ -12,30 +11,9 @@ import { Members } from "./views/Members";
 
 function App() {
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.Schedule);
-  const [isAuthReady, setIsAuthReady] = useState(false);
-
-  useEffect(() => {
-    const signIn = async () => {
-      try {
-        await signInAnonymously(auth);
-        setIsAuthReady(true);
-      } catch (error) {
-        console.error("Auth failed", error);
-      }
-    };
-    signIn();
-  }, []);
-
+  
+  // No auth loading state needed for LocalStorage version
   const renderView = () => {
-    if (!isAuthReady) {
-      return (
-        <div className="flex flex-col items-center justify-center h-full text-duck-dark">
-          <i className="fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-duck-blue"></i>
-          <span className="font-bold">Loading DuckTravel...</span>
-        </div>
-      );
-    }
-
     switch (currentTab) {
       case Tab.Schedule: return <Schedule />;
       case Tab.Bookings: return <Bookings />;
