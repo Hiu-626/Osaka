@@ -14,14 +14,14 @@ export interface ExpenseItem {
   amount: number;
   currency: 'HKD' | 'JPY' | 'AUD';
   category: CategoryType;
-  payer: string; // The person who paid
+  payer: string;
   date: string;
   note?: string;
 }
 
 export interface ScheduleItem {
   id: string;
-  dayIndex: number; // 0 to 9 (Feb 4 to Feb 13)
+  dayIndex: number;
   time: string;
   title: string;
   type: CategoryType;
@@ -37,9 +37,8 @@ export interface BookingItem {
   title: string;
   date: string;
   details: string;
-  // Extended fields
-  originCode?: string; // TPE
-  destCode?: string;   // NRT
+  originCode?: string;
+  destCode?: string;
   originCity?: string;
   destCity?: string;
   seat?: string;
@@ -48,10 +47,10 @@ export interface BookingItem {
   address?: string;
   cost?: number;
   currency?: string;
-  splitBy?: number; // number of people
+  splitBy?: number;
   pickupLocation?: string;
   dropoffLocation?: string;
-  vouchers?: string[]; // list of file names/urls
+  vouchers?: string[];
 }
 
 export interface TodoItem {

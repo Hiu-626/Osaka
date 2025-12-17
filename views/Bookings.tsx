@@ -42,7 +42,6 @@ export const Bookings: React.FC = () => {
 
         return (
           <div key={booking.id} className="mb-6 relative group">
-            {/* Edit Button Toggle */}
             <div className="absolute right-0 top-0 -mt-3 mr-2 z-10 flex gap-2">
                  <button 
                     onClick={() => setEditingId(isEditing ? null : booking.id)}
@@ -159,19 +158,6 @@ export const Bookings: React.FC = () => {
                                 )}
                             </div>
                          </>
-                     )}
-
-                     {booking.type === 'car' && (
-                         <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                                <i className="fa-solid fa-location-arrow text-green-500"></i>
-                                {isEditing ? <input className="border-b w-full focus:outline-none" value={booking.pickupLocation} onChange={(e) => updateBooking(booking.id, 'pickupLocation', e.target.value)} placeholder="Pick up" /> : <span>{booking.pickupLocation}</span>}
-                            </div>
-                            <div className="flex items-center gap-2 text-sm">
-                                <i className="fa-solid fa-flag-checkered text-red-500"></i>
-                                {isEditing ? <input className="border-b w-full focus:outline-none" value={booking.dropoffLocation} onChange={(e) => updateBooking(booking.id, 'dropoffLocation', e.target.value)} placeholder="Drop off" /> : <span>{booking.dropoffLocation}</span>}
-                            </div>
-                         </div>
                      )}
                    </div>
               </Card>

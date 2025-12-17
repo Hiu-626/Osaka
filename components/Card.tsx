@@ -8,10 +8,12 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ children, className = '', color = 'white', onClick }) => {
+  // Enhanced colors with slight opacity for glass feel if background allows, 
+  // but keeping solid for readability on the pattern background.
   const bgColors = {
-    white: 'bg-white',
+    white: 'bg-white/90 backdrop-blur-sm',
     yellow: 'bg-duck-yellow',
-    blue: 'bg-blue-100',
+    blue: 'bg-blue-50/90 backdrop-blur-sm',
   };
 
   return (
@@ -19,13 +21,14 @@ export const Card: React.FC<CardProps> = ({ children, className = '', color = 'w
       onClick={onClick}
       className={`
         ${bgColors[color]} 
-        rounded-2xl 
-        border-2 border-duck-dark 
-        shadow-[4px_4px_0px_0px_rgba(30,58,138,0.2)] 
-        p-4 
+        rounded-3xl 
+        border-2 border-duck-dark/10
+        shadow-[0px_4px_20px_rgba(30,58,138,0.06)]
+        hover:shadow-[0px_4px_25px_rgba(30,58,138,0.12)]
+        p-5
         mb-4 
-        transition-transform 
-        ${onClick ? 'active:scale-[0.98] cursor-pointer' : ''}
+        transition-all duration-300
+        ${onClick ? 'active:scale-[0.98] cursor-pointer hover:-translate-y-0.5' : ''}
         ${className}
       `}
     >

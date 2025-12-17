@@ -33,7 +33,6 @@ export const Planning: React.FC = () => {
     <div className="pb-20 pt-4 px-4 max-w-md mx-auto h-full overflow-y-auto">
        <h1 className="text-2xl font-black text-duck-dark ml-2 mb-4">Planning</h1>
 
-       {/* Sub-tabs */}
        <div className="flex bg-white p-1 rounded-2xl mb-6 shadow-sm">
            <button 
              onClick={() => setActiveTab('packing')}

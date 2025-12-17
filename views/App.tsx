@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 // Removed Firebase Auth imports as we are using LocalStorage for the GitHub version
 import { Tab } from "./types";
-import MyNavBar from './components/MyNavBar'; // ✅ 確保 Import 名稱係 MyNavBar
+import { BottomNav } from "./components/BottomNav";
 import { Schedule } from "./views/Schedule";
 import { Bookings } from "./views/Bookings";
 import { Expense } from "./views/Expense";
@@ -30,9 +30,7 @@ function App() {
       <div className="flex-1 overflow-hidden relative">
         {renderView()}
       </div>
-      
-      {/* ✅ 下面呢行改左做 MyNavBar，對應返上面的 Import */}
-      <MyNavBar currentTab={currentTab} onTabChange={setCurrentTab} />
+      <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />
     </div>
   );
 }

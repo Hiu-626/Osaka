@@ -2,10 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>DuckTravel Planner</title>
+    <meta name="theme-color" content="#E0F2FE" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     
-    <!-- Tailwind CSS (建議之後改用 npm install 安裝，但暫時用 CDN 頂住先) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     
@@ -24,33 +26,78 @@
             },
             fontFamily: {
               sans: ['ui-rounded', 'Nunito', 'Segoe UI', 'sans-serif'],
+            },
+            padding: {
+              'safe': 'env(safe-area-inset-bottom)',
             }
           }
         }
       }
     </script>
     <style>
-      /* Hide scrollbar for clean horizontal scroll */
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       body {
-        background-color: #E0F2FE; 
+        background-color: #E0F2FE;
         background-image: radial-gradient(#60A5FA 1px, transparent 1px);
         background-size: 20px 20px;
-        min-height: 100vh;
+        -webkit-tap-highlight-color: transparent;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        background-color: #E0F2FE;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+      .loader {
+        width: 48px;
+        height: 48px;
+        border: 5px solid #1E90FF;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        animation: rotation 1s linear infinite;
+      }
+      @keyframes rotation {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
     </style>
-  </head>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "firebase/": "https://esm.sh/firebase@^12.7.0/"
+  }
+}
+</script>
+</head>
   <body>
+    <div id="loading-screen">
+      <div class="loader"></div>
+      <div style="margin-top: 20px; font-weight: bold; color: #1e3a8a; font-family: sans-serif;">DuckTravel</div>
+    </div>
     <div id="root"></div>
-    
-    <!-- ⚠️ 關鍵修正：這一行將 HTML 連接去你的 React 代碼 -->
-    <!-- 假設你已經按照我上一條建議，將 index.tsx 搬入 src folder -->
-    <script type="module" src="/src/index.tsx"></script>
+    <script>
+      window.onload = function() {
+        setTimeout(() => {
+            const loader = document.getElementById('loading-screen');
+            if(loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+            }
+        }, 500);
+      }
+    </script>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>

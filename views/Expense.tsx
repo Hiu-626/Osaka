@@ -13,15 +13,8 @@ export const Expense: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showSettlement, setShowSettlement] = useState(false);
 
-  // Hardcoded members for now (could also come from DB)
   const members = ['Me', 'Daisy', 'Scrooge', 'Huey'];
-
-  // Mock Exchange Rates to JPY
-  const RATES = {
-    JPY: 1,
-    HKD: 19, // 1 HKD = 19 JPY approx
-    AUD: 95  // 1 AUD = 95 JPY approx
-  };
+  const RATES = { JPY: 1, HKD: 19, AUD: 95 };
 
   const addOrUpdateExpense = async () => {
     if (!amount) return;
@@ -60,7 +53,6 @@ export const Expense: React.FC = () => {
       setEditingId(null);
   };
 
-  // Calculations for Settlement
   const totalJPY = expenses.reduce((acc, curr) => acc + (curr.amount * RATES[curr.currency]), 0);
   const averagePerPerson = totalJPY / members.length;
 
@@ -101,13 +93,11 @@ export const Expense: React.FC = () => {
           <div className="pb-20 pt-4 px-4 max-w-md mx-auto h-full overflow-y-auto">
              <button onClick={() => setShowSettlement(false)} className="mb-4 text-duck-dark font-bold flex items-center"><i className="fa-solid fa-arrow-left mr-2"></i> Back to Expenses</button>
              <h1 className="text-2xl font-black text-duck-dark mb-6">Settlement</h1>
-             
              <Card className="text-center py-6 mb-6">
                  <p className="text-gray-400 text-xs font-bold uppercase">Total Trip Cost</p>
                  <p className="text-3xl font-black text-duck-dark">¥ {Math.round(totalJPY).toLocaleString()}</p>
                  <p className="text-gray-500 text-sm mt-2">Per Person: ¥ {Math.round(averagePerPerson).toLocaleString()}</p>
              </Card>
-
              <div className="space-y-4">
                  {data.map((d, idx) => (
                      <Card key={idx} className="flex justify-between items-center p-4">
@@ -130,7 +120,6 @@ export const Expense: React.FC = () => {
 
   return (
     <div className="pb-20 pt-4 px-4 max-w-md mx-auto h-full overflow-y-auto">
-      {/* Dashboard */}
       <div className="flex gap-3 mb-6">
         <Card color="yellow" className="flex-1 text-center py-6">
           <p className="text-xs font-bold text-duck-dark opacity-70 mb-1">TOTAL (JPY)</p>
@@ -145,7 +134,6 @@ export const Expense: React.FC = () => {
         </button>
       </div>
 
-      {/* Input / Edit Area */}
       <Card className="mb-6 p-4 border-duck-blue/30">
         <div className="flex justify-between items-center mb-3">
              <h3 className="font-bold text-duck-dark">
@@ -196,7 +184,6 @@ export const Expense: React.FC = () => {
             </div>
         </div>
 
-        {/* Categories */}
         <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar">
             {(['food', 'transport', 'sightseeing', 'stay', 'misc'] as CategoryType[]).map(cat => (
                 <button
@@ -220,7 +207,6 @@ export const Expense: React.FC = () => {
         </button>
       </Card>
 
-      {/* List */}
       <h3 className="font-bold text-gray-500 ml-2 mb-2 text-sm uppercase">History</h3>
       <div className="space-y-3">
         {expenses.map((exp) => (

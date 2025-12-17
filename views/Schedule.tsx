@@ -4,13 +4,13 @@ import { ScheduleItem, CategoryType } from '../types';
 import { useFirestore } from '../hooks/useFirestore';
 
 export const Schedule: React.FC = () => {
-  // Real database connection
   const { data: items, add, update } = useFirestore<ScheduleItem>('schedule');
-  
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [countdownDays, setCountdownDays] = useState(0);
+  const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isNewItem, setIsNewItem] = useState(false);
   
-  // Hardcoded Start Date: Feb 4, 2026
   const TRIP_START_DATE = new Date('2026-02-04T00:00:00');
 
   useEffect(() => {
@@ -18,18 +18,11 @@ export const Schedule: React.FC = () => {
     now.setHours(0, 0, 0, 0);
     const target = new Date(TRIP_START_DATE);
     target.setHours(0, 0, 0, 0);
-
     const diffTime = target.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     setCountdownDays(diffDays > 0 ? diffDays : 0);
   }, []);
 
-  // Editing State
-  const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isNewItem, setIsNewItem] = useState(false);
-
-  // Generate Dates: Feb 4 - Feb 13, 2026
   const days = Array.from({ length: 10 }, (_, i) => {
     const d = new Date(TRIP_START_DATE);
     d.setDate(TRIP_START_DATE.getDate() + i);
@@ -38,7 +31,6 @@ export const Schedule: React.FC = () => {
       day: i + 1,
       date: `${d.getMonth() + 1}/${d.getDate()}`,
       fullDate: d.toDateString(),
-      // Mock weather based on index
       w: i % 3 === 0 ? 'rain' : (i % 2 === 0 ? 'cloud' : 'sun'), 
       temp: `${5 + (i % 4)}°C`,
       humidity: `${40 + (i * 5)}%`,
@@ -67,7 +59,6 @@ export const Schedule: React.FC = () => {
   const handleSave = async () => {
     if (editingItem) {
       if (isNewItem) {
-        // Remove temporary ID before sending to Firestore
         const { id, ...newItemData } = editingItem;
         await add(newItemData);
       } else {
@@ -87,7 +78,7 @@ export const Schedule: React.FC = () => {
   };
 
   const handleAddNew = () => {
-    const newItem: ScheduleItem = {
+    setEditingItem({
       id: 'temp_id',
       dayIndex: selectedDayIndex,
       time: '12:00',
@@ -95,20 +86,17 @@ export const Schedule: React.FC = () => {
       type: 'sightseeing',
       location: '',
       notes: ''
-    };
-    setEditingItem(newItem);
+    });
     setIsEditMode(true);
     setIsNewItem(true);
   };
 
-  // Filter items for current day
   const displayedItems = items
     .filter(i => i.dayIndex === selectedDayIndex)
     .sort((a,b) => a.time.localeCompare(b.time));
 
   return (
     <div className="pb-20 pt-4 px-4 max-w-md mx-auto h-full overflow-y-auto no-scrollbar">
-      {/* Header Countdown */}
       <Card color="blue" className="mb-4 flex items-center justify-between py-3">
         <div>
           <h2 className="text-xs font-bold text-blue-900 uppercase tracking-wider opacity-70">Japan Trip 2026</h2>
@@ -119,7 +107,6 @@ export const Schedule: React.FC = () => {
         </div>
       </Card>
 
-      {/* Date Selector */}
       <div className="flex overflow-x-auto no-scrollbar space-x-2 mb-4 pb-2">
         {days.map((d) => (
           <button
@@ -139,7 +126,6 @@ export const Schedule: React.FC = () => {
         ))}
       </div>
 
-      {/* Weather Box */}
       <div className="bg-gradient-to-r from-blue-50 to-white rounded-2xl p-5 shadow-sm border border-blue-100 mb-6 relative overflow-hidden">
          <div className="absolute top-0 right-0 p-4 opacity-10 text-6xl text-blue-500">
            <i className={`fa-solid ${getWeatherIcon(currentDayInfo.w).split(' ')[0]}`}></i>
@@ -165,7 +151,6 @@ export const Schedule: React.FC = () => {
          </div>
       </div>
 
-      {/* Timeline */}
       <div className="relative border-l-4 border-white ml-4 space-y-6 pb-20">
         {displayedItems.length === 0 && (
           <div className="text-gray-400 text-center py-10 font-bold italic ml-4">
@@ -211,7 +196,6 @@ export const Schedule: React.FC = () => {
         <i className="fa-solid fa-plus text-2xl"></i>
       </button>
 
-      {/* Detail / Edit Overlay */}
       {editingItem && (
         <div className="fixed inset-0 bg-black/60 z-[60] flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto">
@@ -301,35 +285,20 @@ export const Schedule: React.FC = () => {
                       <i className="fa-regular fa-clock mr-2"></i> {editingItem.time}
                     </div>
                  </div>
-
-                 {editingItem.photoUrl && (
-                   <img src={editingItem.photoUrl} alt="Event" className="w-full h-40 object-cover rounded-2xl border-2 border-gray-100" />
-                 )}
-
                  {editingItem.location && (
                    <div className="bg-gray-50 p-4 rounded-2xl flex items-center justify-between">
                      <div className="flex items-center text-gray-700 font-bold">
                        <i className="fa-solid fa-location-dot mr-3 text-red-500"></i>
                        {editingItem.location}
                      </div>
-                     <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(editingItem.location)}`} target="_blank" rel="noreferrer" className="bg-white w-10 h-10 rounded-full flex items-center justify-center border-2 border-gray-200 shadow-sm text-blue-500">
-                       <i className="fa-solid fa-arrow-up-right-from-square"></i>
-                     </a>
                    </div>
                  )}
-
                  {editingItem.notes && (
                    <div className="bg-duck-yellow/20 p-4 rounded-2xl border-2 border-duck-yellow/50">
                      <h4 className="text-xs font-bold text-duck-dark uppercase mb-2">Notes</h4>
                      <p className="text-gray-800 leading-relaxed text-sm whitespace-pre-wrap">{editingItem.notes}</p>
                    </div>
                  )}
-
-                 <div className="flex gap-2">
-                   <button className="flex-1 py-3 rounded-xl border-2 border-gray-200 font-bold text-gray-500 flex items-center justify-center hover:bg-gray-50">
-                     <i className="fa-solid fa-camera mr-2"></i> Add Photo
-                   </button>
-                 </div>
                </div>
              )}
           </div>
