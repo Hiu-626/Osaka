@@ -4,8 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>DuckTravel Planner</title>
+    
+    <!-- Tailwind CSS (建議之後改用 npm install 安裝，但暫時用 CDN 頂住先) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
     <script>
       tailwind.config = {
         theme: {
@@ -36,23 +39,18 @@
         scrollbar-width: none;
       }
       body {
-        background-color: #E0F2FE; /* Light blue generic background */
+        background-color: #E0F2FE; 
         background-image: radial-gradient(#60A5FA 1px, transparent 1px);
         background-size: 20px 20px;
+        min-height: 100vh;
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "firebase/": "https://aistudiocdn.com/firebase@^12.6.0/"
-  }
-}
-</script>
-</head>
+  </head>
   <body>
     <div id="root"></div>
+    
+    <!-- ⚠️ 關鍵修正：這一行將 HTML 連接去你的 React 代碼 -->
+    <!-- 假設你已經按照我上一條建議，將 index.tsx 搬入 src folder -->
+    <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>
