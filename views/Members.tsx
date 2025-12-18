@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Card } from '../components/Card';
 import { Member } from '../types';
 import { useFirestore } from '../hooks/useFirestore';
+import { useSettings } from '../hooks/useSettings';
 
 export const Members: React.FC = () => {
   const { data: members, add, update } = useFirestore<Member>('members');
+  const { settings, updateSettings } = useSettings();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   
@@ -42,7 +45,6 @@ export const Members: React.FC = () => {
 
   const handleResetApp = () => {
       if(window.confirm("⚠️ Reset ALL data? \nThis will delete your changes and restore the demo content. This cannot be undone.")) {
-          // Clear all keys starting with our current prefix
           Object.keys(localStorage).forEach(key => {
               if(key.startsWith('ducktravel_v3_')) {
                   localStorage.removeItem(key);
@@ -57,31 +59,40 @@ export const Members: React.FC = () => {
       <h1 className="text-2xl font-black text-duck-dark ml-2 mb-6">Travel Buddies</h1>
       
       <div className="grid grid-cols-2 gap-4 mb-8">
-        {members.map((m) => (
-          <Card 
-            key={m.id} 
-            onClick={() => openEditModal(m)}
-            className="flex flex-col items-center py-6 relative group hover:border-duck-blue cursor-pointer"
-          >
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <i className="fa-solid fa-pen text-duck-blue text-xs"></i>
-            </div>
-            <div className="relative mb-3">
-              <img 
-                src={`https://picsum.photos/100/100?random=${m.img}`} 
-                alt={m.name} 
-                className="w-20 h-20 rounded-full border-4 border-duck-yellow object-cover"
-              />
-              {m.role === 'Organizer' && (
-                <div className="absolute -bottom-1 -right-1 bg-duck-blue text-white text-[10px] font-bold px-2 py-1 rounded-full border-2 border-white">
-                  LEADER
+        {members.map((m) => {
+          const isActive = settings.activeUserId === m.id;
+          return (
+            <Card 
+              key={m.id} 
+              className={`flex flex-col items-center py-6 relative group cursor-pointer transition-all ${isActive ? 'ring-4 ring-duck-blue ring-offset-2' : 'hover:border-duck-blue'}`}
+            >
+              <div 
+                onClick={() => openEditModal(m)} 
+                className="absolute top-2 right-2 p-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              >
+                  <i className="fa-solid fa-pen text-duck-blue text-xs"></i>
+              </div>
+
+              {/* Selection Area */}
+              <div onClick={() => updateSettings({ activeUserId: m.id })} className="flex flex-col items-center w-full">
+                <div className="relative mb-3">
+                  <img 
+                    src={`https://picsum.photos/100/100?random=${m.img}`} 
+                    alt={m.name} 
+                    className="w-20 h-20 rounded-full border-4 border-duck-yellow object-cover"
+                  />
+                  {isActive && (
+                    <div className="absolute -bottom-1 -right-1 bg-duck-blue text-white text-[10px] font-bold px-2 py-1 rounded-full border-2 border-white shadow-sm">
+                      ME
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <h3 className="font-bold text-gray-800">{m.name}</h3>
-            <p className="text-xs text-gray-500 font-bold uppercase mt-1">{m.role}</p>
-          </Card>
-        ))}
+                <h3 className="font-bold text-gray-800">{m.name}</h3>
+                <p className="text-xs text-gray-500 font-bold uppercase mt-1">{m.role}</p>
+              </div>
+            </Card>
+          );
+        })}
         
         <button 
           onClick={openAddModal}

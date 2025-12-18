@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>DuckTravel Planner</title>
-    <meta name="theme-color" content="#E0F2FE" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     
@@ -16,61 +15,38 @@
         theme: {
           extend: {
             colors: {
-              duck: {
-                yellow: '#FFD700',
-                blue: '#1E90FF',
-                red: '#FF4500',
-                white: '#F7F9FC',
-                dark: '#1e3a8a',
-              }
+              duck: { yellow: '#FFD700', blue: '#1E90FF', dark: '#1e3a8a' },
+              stitch: { blue: '#4FC3F7', dark: '#0277BD', pink: '#F06292' }
             },
-            fontFamily: {
-              sans: ['ui-rounded', 'Nunito', 'Segoe UI', 'sans-serif'],
-            },
-            padding: {
-              'safe': 'env(safe-area-inset-bottom)',
-            }
+            fontFamily: { sans: ['ui-rounded', 'Nunito', 'Segoe UI', 'sans-serif'] }
           }
         }
       }
     </script>
     <style>
+      :root {
+        --safe-top: env(safe-area-inset-top);
+        --safe-bottom: env(safe-area-inset-bottom);
+      }
       .no-scrollbar::-webkit-scrollbar { display: none; }
-      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       body {
-        background-color: #E0F2FE;
-        background-image: radial-gradient(#60A5FA 1px, transparent 1px);
-        background-size: 20px 20px;
-        -webkit-tap-highlight-color: transparent;
         margin: 0;
         padding: 0;
+        background-color: #f0f4f8;
         overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
       }
-      #loading-screen {
-        position: fixed;
-        inset: 0;
-        background-color: #E0F2FE;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        transition: opacity 0.5s ease-out;
+      .notebook-bg {
+        background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+        background-size: 20px 20px;
       }
-      .loader {
-        width: 48px;
-        height: 48px;
-        border: 5px solid #1E90FF;
-        border-bottom-color: transparent;
-        border-radius: 50%;
-        animation: rotation 1s linear infinite;
+      .stitch-bg {
+        background-color: #e0f7fa;
+        background-image: url("https://www.transparenttextures.com/patterns/cubes.png");
       }
-      @keyframes rotation {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
+      #root { height: 100dvh; display: flex; flex-direction: column; }
     </style>
-  <script type="importmap">
+    <script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.1",
@@ -80,24 +56,9 @@
   }
 }
 </script>
-</head>
+  </head>
   <body>
-    <div id="loading-screen">
-      <div class="loader"></div>
-      <div style="margin-top: 20px; font-weight: bold; color: #1e3a8a; font-family: sans-serif;">DuckTravel</div>
-    </div>
     <div id="root"></div>
-    <script>
-      window.onload = function() {
-        setTimeout(() => {
-            const loader = document.getElementById('loading-screen');
-            if(loader) {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 500);
-            }
-        }, 500);
-      }
-    </script>
     <script type="module" src="./index.tsx"></script>
   </body>
 </html>

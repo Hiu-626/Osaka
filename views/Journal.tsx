@@ -9,7 +9,18 @@ export const Journal: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newContent, setNewContent] = useState('');
   const [newLocation, setNewLocation] = useState('');
-  const [newImageUrl, setNewImageUrl] = useState('');
+  const [newImage, setNewImage] = useState<string>('');
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+              setNewImage(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+      }
+  };
 
   const handlePost = async () => {
       if (!newContent) return;
@@ -17,7 +28,7 @@ export const Journal: React.FC = () => {
       await add({
           author: 'Me',
           avatarId: 3,
-          imageUrl: newImageUrl || `https://picsum.photos/600/400?random=${Date.now()}`,
+          imageUrl: newImage || `https://picsum.photos/600/400?random=${Date.now()}`,
           content: newContent,
           location: newLocation || 'Japan',
           date: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
@@ -25,7 +36,7 @@ export const Journal: React.FC = () => {
 
       setNewContent('');
       setNewLocation('');
-      setNewImageUrl('');
+      setNewImage('');
       setIsModalOpen(false);
   };
 
@@ -59,9 +70,11 @@ export const Journal: React.FC = () => {
              </div>
           </div>
           
-          <div className="rounded-xl overflow-hidden mb-3 border-2 border-gray-100">
-            <img src={post.imageUrl} className="w-full h-auto object-cover" alt="Memory" />
-          </div>
+          {post.imageUrl && (
+              <div className="rounded-xl overflow-hidden mb-3 border-2 border-gray-100">
+                <img src={post.imageUrl} className="w-full h-auto object-cover" alt="Memory" />
+              </div>
+          )}
 
           <div className="px-1">
             <p className="text-gray-700 text-sm leading-relaxed">
@@ -88,12 +101,30 @@ export const Journal: React.FC = () => {
                           value={newLocation}
                           onChange={(e) => setNewLocation(e.target.value)}
                       />
-                      <input 
-                          className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-duck-blue outline-none"
-                          placeholder="Image URL (optional)"
-                          value={newImageUrl}
-                          onChange={(e) => setNewImageUrl(e.target.value)}
-                      />
+                      
+                      <div className="relative">
+                          <input 
+                              type="file" 
+                              accept="image/*"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                              id="image-upload"
+                          />
+                          <label 
+                              htmlFor="image-upload"
+                              className="w-full border-2 border-dashed border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-duck-blue hover:text-duck-blue transition-colors"
+                          >
+                              {newImage ? (
+                                  <img src={newImage} alt="Preview" className="h-20 object-contain" />
+                              ) : (
+                                  <>
+                                    <i className="fa-solid fa-image text-2xl mb-1"></i>
+                                    <span className="text-xs font-bold">Upload Photo</span>
+                                  </>
+                              )}
+                          </label>
+                      </div>
+
                       <div className="pt-2 flex gap-2">
                           <button 
                             onClick={() => setIsModalOpen(false)}
